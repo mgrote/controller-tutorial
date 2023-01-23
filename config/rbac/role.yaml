@@ -8,6 +8,58 @@ rules:
 - apiGroups:
   - personal-iot.mgrote
   resources:
+  - locations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - locations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - locations/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - poweroutlets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - poweroutlets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - poweroutlets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
   - powerstrips
   verbs:
   - create

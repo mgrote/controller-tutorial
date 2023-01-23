@@ -9,15 +9,21 @@ metadata:
 spec:
   group: personal-iot.mgrote
   names:
-    kind: PowerOutlet
-    listKind: PowerOutletList
+    categories:
+    - all
+    - power
+    kind: Poweroutlet
+    listKind: PoweroutletList
     plural: poweroutlets
+    shortNames:
+    - outlet
     singular: poweroutlet
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
+        description: Poweroutlet is the Schema for the poweroutlets API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,11 +38,18 @@ spec:
           metadata:
             type: object
           spec:
+            description: PoweroutletSpec defines the desired state of Poweroutlet
             properties:
-              setto:
+              switch:
+                default: "off"
+                description: The desired switch status.
+                enum:
+                - "on"
+                - "off"
                 type: string
             type: object
           status:
+            description: PoweroutletStatus defines the observed state of Poweroutlet
             properties:
               consumption:
                 format: int32
@@ -44,10 +57,6 @@ spec:
               consumptionunit:
                 type: string
               "on":
-                default: "off"
-                enum:
-                - "on"
-                - "off"
                 type: string
             type: object
         type: object

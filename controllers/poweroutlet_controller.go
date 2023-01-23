@@ -27,26 +27,26 @@ import (
 	personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
 )
 
-// PowerstripReconciler reconciles a Powerstrip object
-type PowerstripReconciler struct {
+// PoweroutletReconciler reconciles a Poweroutlet object
+type PoweroutletReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=personal-iot.mgrote,resources=powerstrips,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=personal-iot.mgrote,resources=powerstrips/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=personal-iot.mgrote,resources=powerstrips/finalizers,verbs=update
+//+kubebuilder:rbac:groups=personal-iot.mgrote,resources=poweroutlets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=personal-iot.mgrote,resources=poweroutlets/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=personal-iot.mgrote,resources=poweroutlets/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the Powerstrip object against the actual cluster state, and then
+// the Poweroutlet object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.1/pkg/reconcile
-func (r *PowerstripReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
 	// TODO(user): your logic here
@@ -55,8 +55,8 @@ func (r *PowerstripReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *PowerstripReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *PoweroutletReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&personaliotv1alpha1.Powerstrip{}).
+		For(&personaliotv1alpha1.Poweroutlet{}).
 		Complete(r)
 }

@@ -9,13 +9,18 @@ metadata:
 spec:
   group: personal-iot.mgrote
   names:
+    categories:
+    - all
+    - power
     kind: Powerstrip
     listKind: PowerstripList
     plural: powerstrips
+    shortNames:
+    - strip
     singular: powerstrip
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Powerstrip is the Schema for the powerstrips API
@@ -35,12 +40,10 @@ spec:
           spec:
             description: PowerstripSpec defines the desired state of Powerstrip
             properties:
-              foo:
-                description: Foo is an example field of Powerstrip. Edit powerstrip_types.go
-                  to remove/update
-                type: string
               poweroutlets:
+                description: Poweroutlets to be part of this powerstrip
                 items:
+                  description: Poweroutlet is the Schema for the poweroutlets API
                   properties:
                     apiVersion:
                       description: 'APIVersion defines the versioned schema of this
@@ -57,11 +60,19 @@ spec:
                     metadata:
                       type: object
                     spec:
+                      description: PoweroutletSpec defines the desired state of Poweroutlet
                       properties:
-                        setto:
+                        switch:
+                          default: "off"
+                          description: The desired switch status.
+                          enum:
+                          - "on"
+                          - "off"
                           type: string
                       type: object
                     status:
+                      description: PoweroutletStatus defines the observed state of
+                        Poweroutlet
                       properties:
                         consumption:
                           format: int32
@@ -69,10 +80,6 @@ spec:
                         consumptionunit:
                           type: string
                         "on":
-                          default: "off"
-                          enum:
-                          - "on"
-                          - "off"
                           type: string
                       type: object
                   type: object
@@ -82,13 +89,54 @@ spec:
             description: PowerstripStatus defines the observed state of Powerstrip
             properties:
               consumption:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
                 format: int32
                 type: integer
               consumptionunit:
                 type: string
+              poweroutlets:
+                description: Poweroutlets that are currently part of this powerstrip
+                items:
+                  description: Poweroutlet is the Schema for the poweroutlets API
+                  properties:
+                    apiVersion:
+                      description: 'APIVersion defines the versioned schema of this
+                        representation of an object. Servers should convert recognized
+                        schemas to the latest internal value, and may reject unrecognized
+                        values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+                      type: string
+                    kind:
+                      description: 'Kind is a string value representing the REST resource
+                        this object represents. Servers may infer this from the endpoint
+                        the client submits requests to. Cannot be updated. In CamelCase.
+                        More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+                      type: string
+                    metadata:
+                      type: object
+                    spec:
+                      description: PoweroutletSpec defines the desired state of Poweroutlet
+                      properties:
+                        switch:
+                          default: "off"
+                          description: The desired switch status.
+                          enum:
+                          - "on"
+                          - "off"
+                          type: string
+                      type: object
+                    status:
+                      description: PoweroutletStatus defines the observed state of
+                        Poweroutlet
+                      properties:
+                        consumption:
+                          format: int32
+                          type: integer
+                        consumptionunit:
+                          type: string
+                        "on":
+                          type: string
+                      type: object
+                  type: object
+                type: array
             type: object
         type: object
     served: true
