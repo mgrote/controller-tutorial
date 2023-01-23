@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - powerstrips
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - powerstrips/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - powerstrips/status
+  verbs:
+  - get
+  - patch
+  - update

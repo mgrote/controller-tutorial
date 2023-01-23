@@ -1,0 +1,16 @@
+domain: mgrote
+layout:
+- go.kubebuilder.io/v3
+projectName: "4"
+repo: github.com/mgrote/personal-iot
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: mgrote
+  group: personal-iot
+  kind: Powerstrip
+  path: github.com/mgrote/personal-iot/api/v1
+  version: v1
+version: "3"

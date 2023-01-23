@@ -1,0 +1,27 @@
+# permissions for end users to view powerstrips.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: powerstrip-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: 4
+    app.kubernetes.io/part-of: 4
+    app.kubernetes.io/managed-by: kustomize
+  name: powerstrip-viewer-role
+rules:
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - powerstrips
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - personal-iot.mgrote
+  resources:
+  - powerstrips/status
+  verbs:
+  - get
