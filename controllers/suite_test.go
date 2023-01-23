@@ -31,7 +31,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	personaliotv1 "github.com/mgrote/personal-iot/api/v1"
 	personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
@@ -66,7 +65,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = personaliotv1.AddToScheme(scheme.Scheme)
+	err = personaliotv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = personaliotv1alpha1.AddToScheme(scheme.Scheme)

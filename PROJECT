@@ -10,15 +10,6 @@ resources:
   controller: true
   domain: mgrote
   group: personal-iot
-  kind: Powerstrip
-  path: github.com/mgrote/personal-iot/api/v1
-  version: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: mgrote
-  group: personal-iot
   kind: Location
   path: github.com/mgrote/personal-iot/api/v1alpha1
   version: v1alpha1
