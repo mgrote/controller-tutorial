@@ -58,7 +58,7 @@ var _ = Describe("Power strip controller", func() {
 			// TODO talk:
 			// first: leave powerstrip name empty
 			// second: set powerstrip to wrong name powerStrip.Name = "Test-Power-Strip"
-			powerStrip.Name = "raspicluster"
+			powerStrip.Name = "powerstrip"
 			err = k8sClient.Create(ctx, &powerStrip)
 			Expect(err).ToNot(HaveOccurred())
 
