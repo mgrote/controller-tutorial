@@ -23,13 +23,17 @@ import (
 // LocationSpec defines the desired state of Location
 type LocationSpec struct {
 	// The mood the location should be in.
-	Mood string `json:"mood"`
+	Mood        string        `json:"mood,omitempty"`
+	Powerstrips []Powerstrip  `json:"powerstrips,omitempty"`
+	Outlets     []Poweroutlet `json:"outlets,omitempty"`
 }
 
 // LocationStatus defines the observed state of Location
 type LocationStatus struct {
 	// The mood the location currently is.
-	Mood string `json:"mood"`
+	Mood            string `json:"mood"`
+	Consumption     int32  `json:"consumption,omitempty"`
+	ConsumptionUnit string `json:"consumptionunit,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -43,9 +47,6 @@ type Location struct {
 
 	Spec   LocationSpec   `json:"spec,omitempty"`
 	Status LocationStatus `json:"status,omitempty"`
-
-	Powerstrips PowerstripList  `json:"powerstrips,omitempty"`
-	Outlets     PoweroutletList `json:"outlets,omitempty"`
 }
 
 //+kubebuilder:object:root=true
