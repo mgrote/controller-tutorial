@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,9 +48,18 @@ type PoweroutletReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.1/pkg/reconcile
 func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("PoweroutletReconciler", req.NamespacedName)
 
-	// TODO(user): your logic here
+	powerOutlet := &personaliotv1alpha1.Poweroutlet{}
+	if err := r.Get(ctx, req.NamespacedName, powerOutlet); err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.V(2).Info("poweroutlet not found")
+		} else {
+			logger.V(2).Error(err, "unable to fetch power outlet")
+		}
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	logger.V(2).WithValues("switch", powerOutlet.Spec.Switch).Info("found power outlet")
 
 	return ctrl.Result{}, nil
 }
