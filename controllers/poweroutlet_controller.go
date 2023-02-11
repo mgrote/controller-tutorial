@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -52,14 +51,13 @@ func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	powerOutlet := &personaliotv1alpha1.Poweroutlet{}
 	if err := r.Get(ctx, req.NamespacedName, powerOutlet); err != nil {
-		if apierrors.IsNotFound(err) {
-			logger.V(2).Info("poweroutlet not found")
-		} else {
-			logger.V(2).Error(err, "unable to fetch power outlet")
-		}
+		logger.Error(err, "unable to fetch power outlet")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	logger.V(2).WithValues("switch", powerOutlet.Spec.Switch).Info("found power outlet")
+	logger.WithValues("switch", powerOutlet.Spec.Switch).Info("found power outlet")
+	// TODO check real power outlet and set desired state
+	logger.Info("desired switch state reached", "state", powerOutlet.Spec.Switch)
+	powerOutlet.Status.Switch = powerOutlet.Spec.Switch
 
 	return ctrl.Result{}, nil
 }
