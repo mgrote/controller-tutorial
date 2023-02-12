@@ -24,6 +24,7 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -48,10 +49,42 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+//func getMQTTConfig(configFile string) (*personaliotv1alpha1.PersonalIOTConfig, error) {
+//	if configFile == "" {
+//		return nil, errors.New("expected config file parameter")
+//	}
+//
+//	var err error
+//	options := ctrl.Options{Scheme: scheme}
+//	if configFile != "" {
+//		options, err = options.AndFrom(ctrl.ConfigFile().AtPath(configFile))
+//		if err != nil {
+//			setupLog.Error(err, "unable to load the config file")
+//			os.Exit(1)
+//		}
+//	}
+//
+//	mqttConfig := personaliotv1alpha1.PersonalIOTConfig{}
+//	cfgFile := ctrl.ConfigFile().OfKind(&mqttConfig).AtPath(configFile)
+//	if err := cfgFile.InjectScheme(scheme); err != nil {
+//		return nil, errors.Wrap(err, "unable to load config file")
+//	}
+//	if _, err := cfgFile.Complete(); err != nil {
+//		return nil, errors.Wrap(err, "unable to load the config file")
+//	}
+//
+//	return &mqttConfig, nil
+//}
+
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var configFile string
+	flag.StringVar(&configFile, "config", "",
+		"The controller will load its initial configuration from this file. "+
+			"Omit this flag to use the default configuration values. "+
+			"Command-line flags override configuration from this file.")
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -65,25 +98,18 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "b012abd2.mgrote",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
-	})
+	var err error
+	ctrlConfig := personaliotv1alpha1.PersonalIOTConfig{}
+	options := ctrl.Options{Scheme: scheme}
+	if configFile != "" {
+		options, err = options.AndFrom(ctrl.ConfigFile().AtPath(configFile).OfKind(&ctrlConfig))
+		if err != nil {
+			setupLog.Error(err, "unable to load the config file")
+			os.Exit(1)
+		}
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
@@ -103,9 +129,11 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Location")
 		os.Exit(1)
 	}
+	// configure MQTT client
 	if err = (&controllers.PoweroutletReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:         mgr.GetClient(),
+		Scheme:         mgr.GetScheme(),
+		MQTTClientOpts: getMQTTClientOpts(ctrlConfig.MQTTConfig),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Poweroutlet")
 		os.Exit(1)
@@ -130,4 +158,14 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+func getMQTTClientOpts(mqttConfig personaliotv1alpha1.MQTTConfig) *mqtt.ClientOptions {
+	opts := mqtt.NewClientOptions()
+	opts.AddBroker(*mqttConfig.Broker)
+	opts.SetClientID(*mqttConfig.ClientID)
+	opts.SetUsername(*mqttConfig.UserName)
+	opts.SetPassword(*mqttConfig.Password)
+	opts.SetCleanSession(true)
+	return opts
 }

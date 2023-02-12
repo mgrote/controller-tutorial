@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,7 +31,8 @@ import (
 // PoweroutletReconciler reconciles a Poweroutlet object
 type PoweroutletReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme         *runtime.Scheme
+	MQTTClientOpts *mqtt.ClientOptions
 }
 
 //+kubebuilder:rbac:groups=personal-iot.mgrote,resources=poweroutlets,verbs=get;list;watch;create;update;patch;delete
