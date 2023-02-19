@@ -28,7 +28,10 @@ type PoweroutletSpec struct {
 	// The desired switch status.
 	// +kubebuilder:default:=off
 	// +kubebuilder:validation:Enum:=on;off
-	Switch string `json:"switch,omitempty"`
+	Switch             string `json:"switch,omitempty"`
+	MQTTStatusTopik    string `json:"mqttstatustopik,omitempty"`
+	MQTTCommandTopik   string `json:"mqttcommandtopik,omitempty"`
+	MQTTTelemetryTopik string `json:"mqtttelemetrytopik,omitempty"`
 }
 
 // PoweroutletStatus defines the observed state of Poweroutlet

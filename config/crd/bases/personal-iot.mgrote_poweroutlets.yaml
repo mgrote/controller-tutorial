@@ -40,6 +40,12 @@ spec:
           spec:
             description: PoweroutletSpec defines the desired state of Poweroutlet
             properties:
+              mqttcommandtopik:
+                type: string
+              mqttstatustopik:
+                type: string
+              mqtttelemetrytopik:
+                type: string
               switch:
                 default: "off"
                 description: The desired switch status.

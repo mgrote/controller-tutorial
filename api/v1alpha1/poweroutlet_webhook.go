@@ -45,6 +45,9 @@ func (r *Poweroutlet) Default() {
 	if r.Spec.Switch == "" {
 		r.Spec.Switch = "off"
 	}
+	if r.Status.Switch == "" {
+		r.Status.Switch = "off"
+	}
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
@@ -55,7 +58,7 @@ var _ webhook.Validator = &Poweroutlet{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Poweroutlet) ValidateCreate() error {
 	poweroutletlog.Info("validate create", "name", r.Name)
-	// TODO(user): fill in your validation logic upon object creation.
+
 	if r.Spec.Switch == "on" {
 		r.Spec.Switch = "off"
 	}
