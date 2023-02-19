@@ -23,7 +23,8 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Powerstrip is the Schema for the powerstrips API
+        description: Powerstrip is the Schema for the powerstrips API A power strip
+          hold one or more power outlets and provides a location.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -40,6 +41,8 @@ spec:
           spec:
             description: PowerstripSpec defines the desired state of Powerstrip
             properties:
+              location:
+                type: string
               poweroutlets:
                 description: Poweroutlets to be part of this powerstrip
                 items:
@@ -84,6 +87,8 @@ spec:
                       type: object
                   type: object
                 type: array
+            required:
+            - location
             type: object
           status:
             description: PowerstripStatus defines the observed state of Powerstrip

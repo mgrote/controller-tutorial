@@ -101,6 +101,8 @@ func main() {
 	var err error
 	ctrlConfig := personaliotv1alpha1.PersonalIOTConfig{}
 	options := ctrl.Options{Scheme: scheme}
+
+	// TODO lecture: how to check -> use tilt
 	if configFile != "" {
 		options, err = options.AndFrom(ctrl.ConfigFile().AtPath(configFile).OfKind(&ctrlConfig))
 		if err != nil {

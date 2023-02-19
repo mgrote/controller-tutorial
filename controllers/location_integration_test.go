@@ -51,87 +51,87 @@ var _ = Describe("Location integration", func() {
 			locationList := v1alpha1.LocationList{}
 			Expect(k8sClient.List(ctx, &locationList, &client.ListOptions{Namespace: testName})).Should(Succeed())
 
-			By("Create poweroutlets and powerstrip to add to location.")
-
-			powerOutletOne := v1alpha1.Poweroutlet{
-				Spec: v1alpha1.PoweroutletSpec{
-					Switch: "off",
-				},
-			}
-			powerOutletOne.Name = "light-one"
-			powerOutletOne.Namespace = testName
-			err = k8sClient.Create(ctx, &powerOutletOne)
-			Expect(err).ToNot(HaveOccurred())
-
-			powerOutletTwo := v1alpha1.Poweroutlet{
-				Spec: v1alpha1.PoweroutletSpec{
-					Switch: "off",
-				},
-			}
-			powerOutletTwo.Name = "light-two"
-			powerOutletTwo.Namespace = testName
-			err = k8sClient.Create(ctx, &powerOutletTwo)
-			Expect(err).ToNot(HaveOccurred())
-
-			powerOutletThree := v1alpha1.Poweroutlet{
-				Spec: v1alpha1.PoweroutletSpec{
-					Switch: "on",
-				},
-			}
-			powerOutletThree.Name = "light-three"
-			powerOutletThree.Namespace = testName
-			err = k8sClient.Create(ctx, &powerOutletThree)
-			Expect(err).ToNot(HaveOccurred())
-
-			powerOutletList := v1alpha1.PoweroutletList{}
-			Expect(k8sClient.List(ctx, &powerOutletList, &client.ListOptions{Namespace: testName})).Should(Succeed())
-			Expect(len(powerOutletList.Items)).To(BeIdenticalTo(3))
-
-			powerStrip := v1alpha1.Powerstrip{
-				Spec: v1alpha1.PowerstripSpec{
-					Outlets: []v1alpha1.Poweroutlet{
-						powerOutletOne,
-						powerOutletTwo,
-						powerOutletThree,
-					},
-				},
-			}
-			powerStrip.Name = "light-strip"
-			powerStrip.Namespace = testName
-			err = k8sClient.Create(ctx, &powerStrip)
-			Expect(err).ToNot(HaveOccurred())
-
-			// No more power outlets should occur.
-			Expect(k8sClient.List(ctx, &powerOutletList, &client.ListOptions{Namespace: testName})).Should(Succeed())
-			Expect(len(powerOutletList.Items)).To(BeIdenticalTo(3))
-
-			locationName := "room-one"
-			locationOne.Name = locationName
-			locationOne.Namespace = testName
-			locationOne.Spec = v1alpha1.LocationSpec{
-				Powerstrips: []v1alpha1.Powerstrip{
-					powerStrip,
-				},
-			}
-			err = k8sClient.Create(ctx, &locationOne)
-			Expect(err).ToNot(HaveOccurred())
-
-			By("Reread location to check if nested objects are loaded.")
-
-			locationList = v1alpha1.LocationList{}
-			Expect(k8sClient.List(ctx, &locationList, &client.ListOptions{Namespace: testName})).Should(Succeed())
-
-			locationReread := v1alpha1.Location{}
-			locationReread.Name = locationName
-			locationReread.Namespace = testName
-			objKey := client.ObjectKeyFromObject(&locationReread)
-			err = k8sClient.Get(ctx, objKey, &locationReread)
-			Expect(err).To(BeNil())
-			Expect(locationReread).ToNot(BeNil())
-
-			Expect(len(locationReread.Spec.Powerstrips)).To(BeIdenticalTo(1))
-			rereadPowerStrip := locationReread.Spec.Powerstrips[0]
-			Expect(len(rereadPowerStrip.Spec.Outlets)).To(BeIdenticalTo(3))
+			//By("Create poweroutlets and powerstrip to add to location.")
+			//
+			//powerOutletOne := v1alpha1.Poweroutlet{
+			//	Spec: v1alpha1.PoweroutletSpec{
+			//		Switch: "off",
+			//	},
+			//}
+			//powerOutletOne.Name = "light-one"
+			//powerOutletOne.Namespace = testName
+			//err = k8sClient.Create(ctx, &powerOutletOne)
+			//Expect(err).ToNot(HaveOccurred())
+			//
+			//powerOutletTwo := v1alpha1.Poweroutlet{
+			//	Spec: v1alpha1.PoweroutletSpec{
+			//		Switch: "off",
+			//	},
+			//}
+			//powerOutletTwo.Name = "light-two"
+			//powerOutletTwo.Namespace = testName
+			//err = k8sClient.Create(ctx, &powerOutletTwo)
+			//Expect(err).ToNot(HaveOccurred())
+			//
+			//powerOutletThree := v1alpha1.Poweroutlet{
+			//	Spec: v1alpha1.PoweroutletSpec{
+			//		Switch: "on",
+			//	},
+			//}
+			//powerOutletThree.Name = "light-three"
+			//powerOutletThree.Namespace = testName
+			//err = k8sClient.Create(ctx, &powerOutletThree)
+			//Expect(err).ToNot(HaveOccurred())
+			//
+			//powerOutletList := v1alpha1.PoweroutletList{}
+			//Expect(k8sClient.List(ctx, &powerOutletList, &client.ListOptions{Namespace: testName})).Should(Succeed())
+			//Expect(len(powerOutletList.Items)).To(BeIdenticalTo(3))
+			//
+			//powerStrip := v1alpha1.Powerstrip{
+			//	Spec: v1alpha1.PowerstripSpec{
+			//		Outlets: []v1alpha1.Poweroutlet{
+			//			powerOutletOne,
+			//			powerOutletTwo,
+			//			powerOutletThree,
+			//		},
+			//	},
+			//}
+			//powerStrip.Name = "light-strip"
+			//powerStrip.Namespace = testName
+			//err = k8sClient.Create(ctx, &powerStrip)
+			//Expect(err).ToNot(HaveOccurred())
+			//
+			//// No more power outlets should occur.
+			//Expect(k8sClient.List(ctx, &powerOutletList, &client.ListOptions{Namespace: testName})).Should(Succeed())
+			//Expect(len(powerOutletList.Items)).To(BeIdenticalTo(3))
+			//
+			//locationName := "room-one"
+			//locationOne.Name = locationName
+			//locationOne.Namespace = testName
+			//locationOne.Spec = v1alpha1.LocationSpec{
+			//	Powerstrips: []v1alpha1.Powerstrip{
+			//		powerStrip,
+			//	},
+			//}
+			//err = k8sClient.Create(ctx, &locationOne)
+			//Expect(err).ToNot(HaveOccurred())
+			//
+			//By("Reread location to check if nested objects are loaded.")
+			//
+			//locationList = v1alpha1.LocationList{}
+			//Expect(k8sClient.List(ctx, &locationList, &client.ListOptions{Namespace: testName})).Should(Succeed())
+			//
+			//locationReread := v1alpha1.Location{}
+			//locationReread.Name = locationName
+			//locationReread.Namespace = testName
+			//objKey := client.ObjectKeyFromObject(&locationReread)
+			//err = k8sClient.Get(ctx, objKey, &locationReread)
+			//Expect(err).To(BeNil())
+			//Expect(locationReread).ToNot(BeNil())
+			//
+			//Expect(len(locationReread.Spec.Powerstrips)).To(BeIdenticalTo(1))
+			//rereadPowerStrip := locationReread.Spec.Powerstrips[0]
+			//Expect(len(rereadPowerStrip.Spec.Outlets)).To(BeIdenticalTo(3))
 
 		})
 	})

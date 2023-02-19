@@ -49,7 +49,8 @@ type PowerstripReconciler struct {
 func (r *PowerstripReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// TODO create custom power outlet resources if not exits
+	// TODO create custom location if not exist
 
 	return ctrl.Result{}, nil
 }

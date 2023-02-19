@@ -23,9 +23,7 @@ import (
 // LocationSpec defines the desired state of Location
 type LocationSpec struct {
 	// The mood the location should be in.
-	Mood        string        `json:"mood,omitempty"`
-	Powerstrips []Powerstrip  `json:"powerstrips,omitempty"`
-	Outlets     []Poweroutlet `json:"outlets,omitempty"`
+	Mood string `json:"mood,omitempty"`
 }
 
 // LocationStatus defines the observed state of Location

@@ -57,9 +57,14 @@ func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	logger.WithValues("switch", powerOutlet.Spec.Switch).Info("found power outlet")
-	// TODO check real power outlet and set desired state
+	// TODO check real power outlet and set desired state (switch on or off)
 	logger.Info("desired switch state reached", "state", powerOutlet.Spec.Switch)
 	powerOutlet.Status.Switch = powerOutlet.Spec.Switch
+
+	if err := r.Status().Update(ctx, powerOutlet); err != nil {
+		logger.Error(err, "update PowerOutlet status")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }

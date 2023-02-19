@@ -23,7 +23,8 @@ import (
 // PowerstripSpec defines the desired state of Powerstrip
 type PowerstripSpec struct {
 	// Poweroutlets to be part of this powerstrip
-	Outlets []Poweroutlet `json:"poweroutlets,omitempty"`
+	Outlets  []Poweroutlet `json:"poweroutlets,omitempty"`
+	Location string        `json:"location"`
 }
 
 // PowerstripStatus defines the observed state of Powerstrip
@@ -39,6 +40,7 @@ type PowerstripStatus struct {
 //+kubebuilder:resource:path=powerstrips,scope=Namespaced,categories=all;power,shortName=strip
 
 // Powerstrip is the Schema for the powerstrips API
+// A power strip hold one or more power outlets and provides a location.
 type Powerstrip struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/mgrote/personal-iot/api/v1alpha1"
 )
@@ -42,16 +44,18 @@ var _ = Describe("Power outlet controller", func() {
 			_ = k8sClient.Delete(ctx, &ns)
 		})
 
-		It("should create power outlet resource in namespace", func() {
+		It("should create and delete power outlet resource in namespace (KubeAPI test)", func() {
 
 			By("Non existent resource 'Poweroutlet' is expected")
-			powerOutlet := v1alpha1.Poweroutlet{}
-			err := k8sClient.Get(ctx, typedNs, &powerOutlet)
+			// TODO lecture ---> type of object var has to be pointer to get updates from k8sclient, normal struct will fail
+			powerOutlet := &v1alpha1.Poweroutlet{}
+			err := k8sClient.Get(ctx, typedNs, powerOutlet)
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 
 			powerOutletList := &v1alpha1.PoweroutletList{}
 			//err = k8sClient.List(ctx, powerOutletList, &client.ListOptions{Namespace: testName})
 			Expect(k8sClient.List(ctx, powerOutletList, &client.ListOptions{Namespace: testName})).Should(Succeed())
+			Expect(len(powerOutletList.Items)).To(BeIdenticalTo(0))
 
 			By("Create a power outlet resource")
 			powerOutlet.Namespace = testName
@@ -59,25 +63,67 @@ var _ = Describe("Power outlet controller", func() {
 			// first: leave outlet name empty
 			// second: set outlet to wrong name powerOutlet.Name = "Test-Power-Outlet"
 			powerOutlet.Name = "poweroutlet"
-			err = k8sClient.Create(ctx, &powerOutlet)
+			err = k8sClient.Create(ctx, powerOutlet)
 			Expect(err).ToNot(HaveOccurred())
-
-			By("Power outlet object should be found.")
-			Expect(k8sClient.List(ctx, powerOutletList, &client.ListOptions{Namespace: testName})).Should(Succeed())
-			Expect(len(powerOutletList.Items)).To(BeIdenticalTo(1))
 
 			// TODO Questions to explain: How is the test local kubeapi reached, how is the test local etcd inspected?
 
-			objKey := client.ObjectKeyFromObject(&powerOutlet)
-			err = k8sClient.Get(ctx, objKey, &powerOutlet)
+			By("Power outlet object should be found.")
+			Eventually(func() error {
+				return k8sClient.List(ctx, powerOutletList, &client.ListOptions{Namespace: testName})
+			}, time.Minute, time.Second).Should(Succeed())
+			Expect(len(powerOutletList.Items)).To(BeIdenticalTo(1))
+			powerOutletKey := client.ObjectKeyFromObject(powerOutlet)
+			err = k8sClient.Get(ctx, powerOutletKey, powerOutlet)
 			Expect(err).ShouldNot(HaveOccurred())
 
+			By("A newly created power outlet switch should be always off.")
+			Expect(powerOutlet.Spec.Switch).To(BeIdenticalTo("off"))
+
+			By("Reconciling is expected to run w/o error and the status field switch is set.")
+			powerOutletController := &PoweroutletReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
+
+			_, err = powerOutletController.Reconcile(ctx, reconcile.Request{
+				NamespacedName: powerOutletKey,
+			})
+			Expect(err).To(Not(HaveOccurred()))
+
+			By("reconciled power outlet should have status switch set to 'off'")
+			// reread powerOutlet
+			//powerOutlet = &v1alpha1.Poweroutlet{}
+			Eventually(func() error {
+				return k8sClient.Get(ctx, powerOutletKey, powerOutlet)
+			}, time.Minute, time.Second).Should(Succeed())
+			Expect(powerOutlet.Status.Switch).To(BeIdenticalTo("off"))
+
+			By("Updated power outlet should be updated processed by reconciler")
+			powerOutlet.Spec.Switch = "on"
+			err = k8sClient.Update(ctx, powerOutlet)
+
+			Eventually(func() error {
+				return k8sClient.Get(ctx, powerOutletKey, powerOutlet)
+			}, time.Minute, time.Second).Should(Succeed())
+			Expect(powerOutlet.Spec.Switch).To(BeIdenticalTo("on"))
+			Expect(powerOutlet.Status.Switch).To(BeIdenticalTo("off"))
+
+			_, err = powerOutletController.Reconcile(ctx, reconcile.Request{
+				NamespacedName: powerOutletKey,
+			})
+			Expect(err).To(Not(HaveOccurred()))
+
+			Eventually(func() error {
+				return k8sClient.Get(ctx, powerOutletKey, powerOutlet)
+			}, time.Minute, time.Second).Should(Succeed())
+			Expect(powerOutlet.Status.Switch).To(BeIdenticalTo("on"))
+
 			By("Delete the created power outlet resource")
-			err = k8sClient.Delete(ctx, &powerOutlet)
+			err = k8sClient.Delete(ctx, powerOutlet)
 			Expect(err).ToNot(HaveOccurred())
-			err = k8sClient.Get(ctx, typedNs, &powerOutlet)
+			err = k8sClient.Get(ctx, typedNs, powerOutlet)
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 		})
-
 	})
 })
