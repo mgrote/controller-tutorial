@@ -44,8 +44,6 @@ spec:
                 type: string
               mqttstatustopik:
                 type: string
-              mqtttelemetrytopik:
-                type: string
               switch:
                 default: "off"
                 description: The desired switch status.

@@ -23,8 +23,10 @@ import (
 // PowerstripSpec defines the desired state of Powerstrip
 type PowerstripSpec struct {
 	// Poweroutlets to be part of this powerstrip
-	Outlets      []*Poweroutlet `json:"poweroutlets,omitempty"`
-	LocationName string         `json:"location"`
+	Outlets            []*Poweroutlet `json:"poweroutlets,omitempty"`
+	MQTTStateTopik     string         `json:"mqttstatetopik,omitempty"`
+	MQTTTelemetryTopik string         `json:"mqtttelemetrytopik,omitempty"`
+	LocationName       string         `json:"location"`
 }
 
 // PowerstripStatus defines the observed state of Powerstrip

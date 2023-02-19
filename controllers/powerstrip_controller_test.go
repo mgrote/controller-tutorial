@@ -59,30 +59,27 @@ var _ = Describe("Power strip controller", func() {
 
 			powerOutletOne := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
-					Switch:             "off",
-					MQTTStatusTopik:    "",
-					MQTTCommandTopik:   "",
-					MQTTTelemetryTopik: "",
+					Switch:           "off",
+					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER1",
+					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER1",
 				},
 			}
 			powerOutletOne.Name = "light-one"
 
 			powerOutletTwo := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
-					Switch:             "off",
-					MQTTStatusTopik:    "",
-					MQTTCommandTopik:   "",
-					MQTTTelemetryTopik: "",
+					Switch:           "off",
+					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER2",
+					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER2",
 				},
 			}
 			powerOutletTwo.Name = "light-two"
 
 			powerOutletThree := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
-					Switch:             "on",
-					MQTTStatusTopik:    "",
-					MQTTCommandTopik:   "",
-					MQTTTelemetryTopik: "",
+					Switch:           "on",
+					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER2",
+					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER3",
 				},
 			}
 			powerOutletThree.Name = "light-three"
@@ -94,6 +91,8 @@ var _ = Describe("Power strip controller", func() {
 			powerStrip.Namespace = testName
 			powerStrip.Spec.Outlets = []*v1alpha1.Poweroutlet{powerOutletOne, powerOutletTwo, powerOutletThree}
 			powerStrip.Spec.LocationName = locationName
+			powerStrip.Spec.MQTTStateTopik = "tele/gosund_p1_1_12FCA5/STATE"
+			powerStrip.Spec.MQTTTelemetryTopik = "tele/gosund_p1_1_12FCA5/SENSOR"
 			err = k8sClient.Create(ctx, powerStrip)
 			Expect(err).ToNot(HaveOccurred())
 

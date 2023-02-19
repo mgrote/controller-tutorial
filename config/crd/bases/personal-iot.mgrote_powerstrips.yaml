@@ -43,6 +43,10 @@ spec:
             properties:
               location:
                 type: string
+              mqttstatetopik:
+                type: string
+              mqtttelemetrytopik:
+                type: string
               poweroutlets:
                 description: Poweroutlets to be part of this powerstrip
                 items:
@@ -68,8 +72,6 @@ spec:
                         mqttcommandtopik:
                           type: string
                         mqttstatustopik:
-                          type: string
-                        mqtttelemetrytopik:
                           type: string
                         switch:
                           default: "off"
