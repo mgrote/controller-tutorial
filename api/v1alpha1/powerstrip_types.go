@@ -23,16 +23,16 @@ import (
 // PowerstripSpec defines the desired state of Powerstrip
 type PowerstripSpec struct {
 	// Poweroutlets to be part of this powerstrip
-	Outlets  []Poweroutlet `json:"poweroutlets,omitempty"`
-	Location string        `json:"location"`
+	Outlets      []*Poweroutlet `json:"poweroutlets,omitempty"`
+	LocationName string         `json:"location"`
 }
 
 // PowerstripStatus defines the observed state of Powerstrip
 type PowerstripStatus struct {
 	// Poweroutlets that are currently part of this powerstrip
-	Outlets         []Poweroutlet `json:"poweroutlets,omitempty"`
-	Consumption     int32         `json:"consumption,omitempty"`
-	ConsumptionUnit string        `json:"consumptionunit,omitempty"`
+	Outlets         []string `json:"poweroutlets,omitempty"`
+	Consumption     int32    `json:"consumption,omitempty"`
+	ConsumptionUnit string   `json:"consumptionunit,omitempty"`
 }
 
 //+kubebuilder:object:root=true

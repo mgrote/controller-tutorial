@@ -328,9 +328,13 @@ func (in *PowerstripSpec) DeepCopyInto(out *PowerstripSpec) {
 	*out = *in
 	if in.Outlets != nil {
 		in, out := &in.Outlets, &out.Outlets
-		*out = make([]Poweroutlet, len(*in))
+		*out = make([]*Poweroutlet, len(*in))
 		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(Poweroutlet)
+				(*in).DeepCopyInto(*out)
+			}
 		}
 	}
 }
@@ -350,10 +354,8 @@ func (in *PowerstripStatus) DeepCopyInto(out *PowerstripStatus) {
 	*out = *in
 	if in.Outlets != nil {
 		in, out := &in.Outlets, &out.Outlets
-		*out = make([]Poweroutlet, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 }
 

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -11,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/mgrote/personal-iot/api/v1alpha1"
 )
@@ -45,38 +47,88 @@ var _ = Describe("Power strip controller", func() {
 		It("should create power strip resource in namespace", func() {
 
 			By("Non existent resource 'Powerstrip' is expected")
-			powerStrip := v1alpha1.Powerstrip{}
-			err := k8sClient.Get(ctx, typedNs, &powerStrip)
+			powerStrip := &v1alpha1.Powerstrip{}
+			err := k8sClient.Get(ctx, typedNs, powerStrip)
 			Expect(errors.IsNotFound(err)).To(BeTrue())
 
 			powerStripList := &v1alpha1.PowerstripList{}
-			//err = k8sClient.List(ctx, powerStripList, &client.ListOptions{Namespace: testName})
 			Expect(k8sClient.List(ctx, powerStripList, &client.ListOptions{Namespace: testName})).Should(Succeed())
+			// --------------------------------------------------------------------------------------------
 
-			By("Create a power strip resource")
+			By("Create poweroutlets and powerstrip.")
+
+			powerOutletOne := &v1alpha1.Poweroutlet{
+				Spec: v1alpha1.PoweroutletSpec{
+					Switch:             "off",
+					MQTTStatusTopik:    "",
+					MQTTCommandTopik:   "",
+					MQTTTelemetryTopik: "",
+				},
+			}
+			powerOutletOne.Name = "light-one"
+
+			powerOutletTwo := &v1alpha1.Poweroutlet{
+				Spec: v1alpha1.PoweroutletSpec{
+					Switch:             "off",
+					MQTTStatusTopik:    "",
+					MQTTCommandTopik:   "",
+					MQTTTelemetryTopik: "",
+				},
+			}
+			powerOutletTwo.Name = "light-two"
+
+			powerOutletThree := &v1alpha1.Poweroutlet{
+				Spec: v1alpha1.PoweroutletSpec{
+					Switch:             "on",
+					MQTTStatusTopik:    "",
+					MQTTCommandTopik:   "",
+					MQTTTelemetryTopik: "",
+				},
+			}
+			powerOutletThree.Name = "light-three"
+
+			// location name will be reused
+			locationName := "Here"
+			// setup power strip
+			powerStrip.Name = "light-strip"
 			powerStrip.Namespace = testName
-			// TODO talk:
-			// first: leave powerstrip name empty
-			// second: set powerstrip to wrong name powerStrip.Name = "Test-Power-Strip"
-			powerStrip.Name = "powerstrip-name"
-			err = k8sClient.Create(ctx, &powerStrip)
+			powerStrip.Spec.Outlets = []*v1alpha1.Poweroutlet{powerOutletOne, powerOutletTwo, powerOutletThree}
+			powerStrip.Spec.LocationName = locationName
+			err = k8sClient.Create(ctx, powerStrip)
 			Expect(err).ToNot(HaveOccurred())
 
-			By("Power strip object should be found.")
-			Expect(k8sClient.List(ctx, powerStripList, &client.ListOptions{Namespace: testName})).Should(Succeed())
-			Expect(len(powerStripList.Items)).To(BeIdenticalTo(1))
+			powerStripKey := client.ObjectKeyFromObject(powerStrip)
+			Eventually(func() error {
+				return k8sClient.Get(ctx, powerStripKey, powerStrip)
+			}, time.Minute, time.Second).Should(Succeed())
 
-			// TODO Questions to explain: How is the test local kubeapi reached, how is the test local etcd inspected?
+			powerStripController := &PowerstripReconciler{
+				Client: k8sClient,
+				Scheme: k8sClient.Scheme(),
+			}
 
-			objKey := client.ObjectKeyFromObject(&powerStrip)
-			err = k8sClient.Get(ctx, objKey, &powerStrip)
-			Expect(err).ShouldNot(HaveOccurred())
+			_, err = powerStripController.Reconcile(ctx, reconcile.Request{
+				NamespacedName: powerStripKey,
+			})
+			Expect(err).To(Not(HaveOccurred()))
 
-			By("Delete the created power strip resource")
-			err = k8sClient.Delete(ctx, &powerStrip)
-			Expect(err).ToNot(HaveOccurred())
-			err = k8sClient.Get(ctx, typedNs, &powerStrip)
-			Expect(errors.IsNotFound(err)).To(BeTrue())
+			By("Three power outlet object should be found after reconciliation.")
+			powerOutletList := &v1alpha1.PoweroutletList{}
+			Eventually(func() error {
+				return k8sClient.List(ctx, powerOutletList, &client.ListOptions{Namespace: testName})
+			}, time.Minute, time.Second).Should(Succeed())
+			Expect(len(powerOutletList.Items)).To(BeIdenticalTo(3))
+			containedItemNames := [3]string{}
+			for i, outlet := range powerOutletList.Items {
+				containedItemNames[i] = outlet.Name
+			}
+			Expect(containedItemNames).To(ContainElements("light-one", "light-two", "light-three"))
+
+			By("A location object should be found after reconciliation")
+			location := &v1alpha1.Location{}
+			Eventually(func() error {
+				return k8sClient.Get(ctx, client.ObjectKey{Namespace: testName, Name: locationName}, location)
+			}, time.Minute, time.Second).Should(Succeed())
 		})
 
 	})
