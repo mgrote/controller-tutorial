@@ -33,6 +33,7 @@ type PowerstripSpec struct {
 type PowerstripStatus struct {
 	// Poweroutlets that are currently part of this powerstrip
 	Outlets         []string `json:"poweroutlets,omitempty"`
+	Location        string   `json:"location,omitempty"`
 	Consumption     int32    `json:"consumption,omitempty"`
 	ConsumptionUnit string   `json:"consumptionunit,omitempty"`
 }

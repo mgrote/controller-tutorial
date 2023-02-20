@@ -29,6 +29,7 @@ type PoweroutletSpec struct {
 	// +kubebuilder:default:=off
 	// +kubebuilder:validation:Enum:=on;off
 	Switch           string `json:"switch,omitempty"`
+	OutletName       string `json:"outletName,omitempty"`
 	MQTTStatusTopik  string `json:"mqttstatustopik,omitempty"`
 	MQTTCommandTopik string `json:"mqttcommandtopik,omitempty"`
 }

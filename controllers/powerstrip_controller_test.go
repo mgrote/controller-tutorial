@@ -60,36 +60,37 @@ var _ = Describe("Power strip controller", func() {
 			powerOutletOne := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
 					Switch:           "off",
+					OutletName:       "light-one",
 					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER1",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER1",
 				},
 			}
-			powerOutletOne.Name = "light-one"
 
 			powerOutletTwo := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
 					Switch:           "off",
+					OutletName:       "light-two",
 					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER2",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER2",
 				},
 			}
-			powerOutletTwo.Name = "light-two"
 
 			powerOutletThree := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
 					Switch:           "on",
+					OutletName:       "light-three",
 					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER2",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER3",
 				},
 			}
-			powerOutletThree.Name = "light-three"
+			outlets := []*v1alpha1.Poweroutlet{powerOutletOne, powerOutletTwo, powerOutletThree}
 
-			// location name will be reused
-			locationName := "Here"
+			// location name will be reused later on
+			locationName := "here"
 			// setup power strip
 			powerStrip.Name = "light-strip"
 			powerStrip.Namespace = testName
-			powerStrip.Spec.Outlets = []*v1alpha1.Poweroutlet{powerOutletOne, powerOutletTwo, powerOutletThree}
+			powerStrip.Spec.Outlets = outlets
 			powerStrip.Spec.LocationName = locationName
 			powerStrip.Spec.MQTTStateTopik = "tele/gosund_p1_1_12FCA5/STATE"
 			powerStrip.Spec.MQTTTelemetryTopik = "tele/gosund_p1_1_12FCA5/SENSOR"
@@ -112,6 +113,7 @@ var _ = Describe("Power strip controller", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			By("Three power outlet object should be found after reconciliation.")
+
 			powerOutletList := &v1alpha1.PoweroutletList{}
 			Eventually(func() error {
 				return k8sClient.List(ctx, powerOutletList, &client.ListOptions{Namespace: testName})
@@ -124,10 +126,26 @@ var _ = Describe("Power strip controller", func() {
 			Expect(containedItemNames).To(ContainElements("light-one", "light-two", "light-three"))
 
 			By("A location object should be found after reconciliation")
+
+			// note the missing metav1.TypeMeta in object
 			location := &v1alpha1.Location{}
 			Eventually(func() error {
 				return k8sClient.Get(ctx, client.ObjectKey{Namespace: testName, Name: locationName}, location)
 			}, time.Minute, time.Second).Should(Succeed())
+			// note the filled metav1.TypeMeta in list
+			locationList := &v1alpha1.LocationList{}
+			Eventually(func() error {
+				return k8sClient.List(ctx, locationList, &client.ListOptions{Namespace: testName})
+			}, time.Minute, time.Second).Should(Succeed())
+
+			By("The power strip status should be set up")
+
+			Eventually(func() error {
+				return k8sClient.Get(ctx, powerStripKey, powerStrip)
+			}, time.Minute, time.Second).Should(Succeed())
+			Expect(powerStrip.Status.Location).To(BeIdenticalTo(locationName))
+			Expect(len(powerStrip.Status.Outlets)).To(BeIdenticalTo(3))
+			Expect(powerStrip.Status.Outlets).To(ContainElements("light-one", "light-two", "light-three"))
 		})
 
 	})

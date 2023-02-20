@@ -25,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
+	"github.com/mgrote/personal-iot/api/v1alpha1"
 )
 
 // PoweroutletReconciler reconciles a Poweroutlet object
@@ -51,7 +51,7 @@ type PoweroutletReconciler struct {
 func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx).WithValues("PoweroutletReconciler", req.NamespacedName)
 
-	powerOutlet := &personaliotv1alpha1.Poweroutlet{}
+	powerOutlet := &v1alpha1.Poweroutlet{}
 	if err := r.Get(ctx, req.NamespacedName, powerOutlet); err != nil {
 		logger.Error(err, "unable to fetch power outlet")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -72,6 +72,6 @@ func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 // SetupWithManager sets up the controller with the Manager.
 func (r *PoweroutletReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&personaliotv1alpha1.Poweroutlet{}).
+		For(&v1alpha1.Poweroutlet{}).
 		Complete(r)
 }
