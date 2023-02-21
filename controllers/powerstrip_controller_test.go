@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/mgrote/personal-iot/api/v1alpha1"
+	"github.com/mgrote/personal-iot/internal/mqttiot"
 )
 
 var _ = Describe("Power strip controller", func() {
@@ -79,7 +80,7 @@ var _ = Describe("Power strip controller", func() {
 				Spec: v1alpha1.PoweroutletSpec{
 					Switch:           "on",
 					OutletName:       "light-three",
-					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER2",
+					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER3",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER3",
 				},
 			}
@@ -102,9 +103,13 @@ var _ = Describe("Power strip controller", func() {
 				return k8sClient.Get(ctx, powerStripKey, powerStrip)
 			}, time.Minute, time.Second).Should(Succeed())
 
+			mqttClientOpts, err := mqttiot.ClientOptsFromEnv()
+			Expect(err).ShouldNot(HaveOccurred())
+
 			powerStripController := &PowerstripReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
+				Client:         k8sClient,
+				Scheme:         k8sClient.Scheme(),
+				MQTTClientOpts: mqttClientOpts,
 			}
 
 			_, err = powerStripController.Reconcile(ctx, reconcile.Request{

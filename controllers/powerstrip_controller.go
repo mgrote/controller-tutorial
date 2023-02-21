@@ -18,7 +18,9 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -31,7 +33,8 @@ import (
 // PowerstripReconciler reconciles a Powerstrip object
 type PowerstripReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme         *runtime.Scheme
+	MQTTClientOpts *mqtt.ClientOptions
 }
 
 //+kubebuilder:rbac:groups=personal-iot.mgrote,resources=powerstrips,verbs=get;list;watch;create;update;patch;delete
@@ -63,12 +66,12 @@ func (r *PowerstripReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	outlets, err := r.getOrCreateOutlets(ctx, powerStrip)
 	if err != nil {
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 
-	var existingOutletNames []string
-	for _, outlet := range outlets {
-		existingOutletNames = append(existingOutletNames, outlet.Name)
+	existingOutletNames, err := r.checkOutletReachability(outlets)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	powerStrip.Status.Location = location.Name
@@ -79,6 +82,34 @@ func (r *PowerstripReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func (r *PowerstripReconciler) checkOutletReachability(outlets []*v1alpha1.Poweroutlet) ([]string, error) {
+
+	mqttSubscriber := mqtt.NewClient(r.MQTTClientOpts)
+	if token := mqttSubscriber.Connect(); token.Wait() && token.Error() != nil {
+		return nil, fmt.Errorf("subscriber could not connect MQTT broker %s", r.MQTTClientOpts.Servers)
+	}
+
+	var existingOutletNames []string
+	for _, outlet := range outlets {
+		messageChannel := make(chan [2]string)
+		messageHandler := func(client mqtt.Client, msg mqtt.Message) {
+			messageChannel <- [2]string{msg.Topic(), string(msg.Payload())}
+		}
+		if token := mqttSubscriber.Subscribe(outlet.Spec.MQTTStatusTopik, 1, messageHandler); token.Wait() && token.Error() != nil {
+			return nil, fmt.Errorf(
+				"subscriber could not subscribe MQTT broker %s", outlet.Spec.MQTTStatusTopik)
+		}
+
+		incoming := <-messageChannel
+		if len(incoming[1]) > 1 {
+			existingOutletNames = append(existingOutletNames, outlet.Name)
+		}
+
+		mqttSubscriber.Unsubscribe(outlet.Spec.MQTTStatusTopik)
+	}
+	return existingOutletNames, nil
 }
 
 func (r *PowerstripReconciler) getOrCreateOutlets(ctx context.Context, powerStrip *v1alpha1.Powerstrip) ([]*v1alpha1.Poweroutlet, error) {

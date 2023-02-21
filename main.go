@@ -24,7 +24,6 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -34,6 +33,7 @@ import (
 
 	personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
 	"github.com/mgrote/personal-iot/controllers"
+	"github.com/mgrote/personal-iot/internal/mqttiot"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -117,9 +117,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	mqttClientOpts := mqttiot.ClientOpts(ctrlConfig.MQTTConfig)
+
 	if err = (&controllers.PowerstripReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:         mgr.GetClient(),
+		Scheme:         mgr.GetScheme(),
+		MQTTClientOpts: mqttClientOpts,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Powerstrip")
 		os.Exit(1)
@@ -135,7 +138,7 @@ func main() {
 	if err = (&controllers.PoweroutletReconciler{
 		Client:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
-		MQTTClientOpts: getMQTTClientOpts(ctrlConfig.MQTTConfig),
+		MQTTClientOpts: mqttClientOpts,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Poweroutlet")
 		os.Exit(1)
@@ -160,14 +163,4 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-func getMQTTClientOpts(mqttConfig personaliotv1alpha1.MQTTConfig) *mqtt.ClientOptions {
-	opts := mqtt.NewClientOptions()
-	opts.AddBroker(*mqttConfig.Broker)
-	opts.SetClientID(*mqttConfig.ClientID)
-	opts.SetUsername(*mqttConfig.UserName)
-	opts.SetPassword(*mqttConfig.Password)
-	opts.SetCleanSession(true)
-	return opts
 }
