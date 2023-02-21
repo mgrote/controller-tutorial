@@ -18,7 +18,7 @@ leaderElection:
   leaderElect: true
   resourceName: b012abd2.mgrote
 mqttConfig:
-  broker: 192.168.0.70
+  broker: tcp://192.168.0.70:1883
   clientID: personalIOTController
   user: admin
   password: hivemq

@@ -99,7 +99,7 @@ func (r *PowerstripReconciler) checkOutletReachability(outlets []*v1alpha1.Power
 		}
 		if token := mqttSubscriber.Subscribe(outlet.Spec.MQTTStatusTopik, 1, messageHandler); token.Wait() && token.Error() != nil {
 			return nil, fmt.Errorf(
-				"subscriber could not subscribe MQTT broker %s", outlet.Spec.MQTTStatusTopik)
+				"subscriber could not subscribe MQTT topik %s", outlet.Spec.MQTTStatusTopik)
 		}
 
 		incoming := <-messageChannel
