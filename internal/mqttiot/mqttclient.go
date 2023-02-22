@@ -6,14 +6,10 @@ import (
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 
-	personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
-)
+	//personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
 
-const (
-	mqttBroker   = "MQTT_BROKER"
-	mqttClientID = "MQTT_CLIENT_ID"
-	mqttUserName = "MQTT_USER"
-	mqttPassWord = "MQTT_PASS"
+	personaliotv1alpha1 "github.com/mgrote/personal-iot/api/v1alpha1"
+	"github.com/mgrote/personal-iot/internal"
 )
 
 func ClientOpts(mqttConfig personaliotv1alpha1.MQTTConfig) *mqtt.ClientOptions {
@@ -28,21 +24,21 @@ func ClientOpts(mqttConfig personaliotv1alpha1.MQTTConfig) *mqtt.ClientOptions {
 
 func ClientOptsFromEnv() (*mqtt.ClientOptions, error) {
 	opts := mqtt.NewClientOptions()
-	broker, found := os.LookupEnv(mqttBroker)
+	broker, found := os.LookupEnv(internal.MqttBroker)
 	if !found {
-		return nil, fmt.Errorf("unable to find environment var %s", mqttBroker)
+		return nil, fmt.Errorf("unable to find environment var %s", internal.MqttBroker)
 	}
-	clientID, found := os.LookupEnv(mqttClientID)
+	clientID, found := os.LookupEnv(internal.MqttClientID)
 	if !found {
-		return nil, fmt.Errorf("unable to find environment var %s", mqttClientID)
+		return nil, fmt.Errorf("unable to find environment var %s", internal.MqttClientID)
 	}
-	user, found := os.LookupEnv(mqttUserName)
+	user, found := os.LookupEnv(internal.MqttUserName)
 	if !found {
-		return nil, fmt.Errorf("unable to find environment var %s", mqttUserName)
+		return nil, fmt.Errorf("unable to find environment var %s", internal.MqttUserName)
 	}
-	pass, found := os.LookupEnv(mqttPassWord)
+	pass, found := os.LookupEnv(internal.MqttPassWord)
 	if !found {
-		return nil, fmt.Errorf("unable to find environment var %s", mqttPassWord)
+		return nil, fmt.Errorf("unable to find environment var %s", internal.MqttPassWord)
 	}
 	opts.AddBroker(broker)
 	opts.SetClientID(clientID)

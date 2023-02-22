@@ -15,6 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/mgrote/personal-iot/api/v1alpha1"
+	"github.com/mgrote/personal-iot/internal"
 	"github.com/mgrote/personal-iot/internal/mqttiot"
 )
 
@@ -60,7 +61,7 @@ var _ = Describe("Power strip controller", func() {
 
 			powerOutletOne := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
-					Switch:           "off",
+					Switch:           internal.PowerOffSignal,
 					OutletName:       "light-one",
 					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER1",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER1",
@@ -69,7 +70,7 @@ var _ = Describe("Power strip controller", func() {
 
 			powerOutletTwo := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
-					Switch:           "off",
+					Switch:           internal.PowerOffSignal,
 					OutletName:       "light-two",
 					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER2",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER2",
@@ -78,7 +79,7 @@ var _ = Describe("Power strip controller", func() {
 
 			powerOutletThree := &v1alpha1.Poweroutlet{
 				Spec: v1alpha1.PoweroutletSpec{
-					Switch:           "on",
+					Switch:           internal.PowerOffSignal,
 					OutletName:       "light-three",
 					MQTTStatusTopik:  "stat/gosund_p1_1_12FCA5/POWER3",
 					MQTTCommandTopik: "cmnd/gosund_p1_1_12FCA5/POWER3",

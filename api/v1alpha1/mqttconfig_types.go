@@ -2,7 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
+	controllerruntime "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
 
 type MQTTConfig struct {
@@ -16,8 +16,8 @@ type MQTTConfig struct {
 //+kubebuilder:object:root=true
 
 type PersonalIOTConfig struct {
-	metav1.TypeMeta                        `json:",inline"`
-	cfg.ControllerManagerConfigurationSpec `json:",inline"`
+	metav1.TypeMeta                                      `json:",inline"`
+	controllerruntime.ControllerManagerConfigurationSpec `json:",inline"`
 
 	MQTTConfig MQTTConfig `json:"mqttConfig,omitempty"`
 }

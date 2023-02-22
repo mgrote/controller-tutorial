@@ -28,11 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/mgrote/personal-iot/api/v1alpha1"
-)
-
-const (
-	powerOnSignal  = "ON"
-	powerOffSignal = "OFF"
+	"github.com/mgrote/personal-iot/internal"
 )
 
 // PoweroutletReconciler reconciles a Poweroutlet object
@@ -71,7 +67,7 @@ func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	currentState, err := r.reconcilePowerOutletState(ctx, powerOutlet)
 	if err != nil {
-		return ctrl.Result{}, nil
+		return ctrl.Result{}, err
 	}
 	logger.Info("reached state", "current state", currentState)
 	powerOutlet.Status.Switch = *currentState
@@ -86,10 +82,16 @@ func (r *PoweroutletReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 func (r *PoweroutletReconciler) reconcilePowerOutletState(ctx context.Context, powerOutlet *v1alpha1.Poweroutlet) (*string, error) {
 
+	// TODO change timing
+	// first subscribe and check current state
+	// second other client send message
+	// third check subscription again and check against msg.Duplicate and msg.MessageID
+
 	mqttClient := mqtt.NewClient(r.MQTTClientOpts)
 	if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-		return nil, fmt.Errorf("client could not connect MQTT broker %s", r.MQTTClientOpts.Servers)
+		return nil, fmt.Errorf("client could not connect MQTT broker %s, %w", r.MQTTClientOpts.Servers, token.Error())
 	}
+
 	// publish new state
 	token := mqttClient.Publish(powerOutlet.Spec.MQTTCommandTopik, 1, true, powerOutlet.Spec.Switch)
 	if !token.WaitTimeout(time.Second * 5) {
@@ -101,20 +103,27 @@ func (r *PoweroutletReconciler) reconcilePowerOutletState(ctx context.Context, p
 	messageHandler := func(client mqtt.Client, msg mqtt.Message) {
 		messageChannel <- [2]string{msg.Topic(), string(msg.Payload())}
 	}
+	// TODO lecture ---> debug timing problems
 	if token = mqttClient.Subscribe(powerOutlet.Spec.MQTTStatusTopik, 1, messageHandler); token.WaitTimeout(time.Second*5) && token.Error() != nil {
 		return nil, fmt.Errorf(
-			"client could not subscribe MQTT topik %s", powerOutlet.Spec.MQTTStatusTopik)
+			"client could not subscribe MQTT topik %s, %w", powerOutlet.Spec.MQTTStatusTopik, token.Error())
 	}
 
-	incoming := <-messageChannel
-	currentState := incoming[1]
-	mqttClient.Unsubscribe(powerOutlet.Spec.MQTTStatusTopik)
+	var currentState string
+	for i := 0; i < 2; i++ {
+		incoming := <-messageChannel
+		currentState = incoming[1]
+	}
 
-	if currentState == powerOnSignal || currentState == powerOffSignal {
+	//mqttClient.Unsubscribe(powerOutlet.Spec.MQTTStatusTopik)
+	mqttClient.Disconnect(500)
+
+	// check for valid message format
+	if currentState == internal.PowerOnSignal || currentState == internal.PowerOffSignal {
 		return &currentState, nil
 	}
 
-	return nil, fmt.Errorf("unexpected state %s  found, expected where %s or %s", currentState, powerOnSignal, powerOffSignal)
+	return nil, fmt.Errorf("unexpected state %s  found, expected where %s or %s", currentState, internal.PowerOnSignal, internal.PowerOffSignal)
 }
 
 // SetupWithManager sets up the controller with the Manager.

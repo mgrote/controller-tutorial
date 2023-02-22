@@ -17,10 +17,14 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	"github.com/mgrote/personal-iot/internal"
 )
 
 // log is for logging in this package.
@@ -43,11 +47,13 @@ func (r *Poweroutlet) Default() {
 	poweroutletlog.Info("default", "name", r.Name)
 
 	if r.Spec.Switch == "" {
-		r.Spec.Switch = "off"
+		r.Spec.Switch = internal.PowerOffSignal
 	}
-	if r.Status.Switch == "" {
-		r.Status.Switch = "off"
-	}
+	// if r.Spec.Switch == internal.PowerOnSignal, the next reconcile will power off the switch
+	// but Status could not be set before reconcile (only Reconciler can set the status)
+	//if r.Status.Switch == "" {
+	//	r.Status.Switch = internal.PowerOffSignal
+	//}
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
@@ -59,8 +65,10 @@ var _ webhook.Validator = &Poweroutlet{}
 func (r *Poweroutlet) ValidateCreate() error {
 	poweroutletlog.Info("validate create", "name", r.Name)
 
-	if r.Spec.Switch == "on" {
-		r.Spec.Switch = "off"
+	// TODO lecture ---> changes are not allowed in validating webhook
+	// TODO lecture ---> if any code is added to the first generated code, validation will fail, you will have to make generate
+	if r.Spec.Switch == internal.PowerOnSignal {
+		return fmt.Errorf("%s is an undesired state for a switch during create, please check your device and set Spec.Switch to %s", internal.PowerOnSignal, internal.PowerOffSignal)
 	}
 	return nil
 }

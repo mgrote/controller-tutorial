@@ -47,11 +47,11 @@ spec:
               outletName:
                 type: string
               switch:
-                default: "off"
+                default: "OFF"
                 description: The desired switch status.
                 enum:
-                - "on"
-                - "off"
+                - "ON"
+                - "OFF"
                 type: string
             type: object
           status:
